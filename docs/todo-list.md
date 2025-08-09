@@ -18,56 +18,45 @@ Definition of Done (Phase 0)
 
 ---
 
-## Phase 1 — Webapp Initial Creation
+## Phase 1 — Webapp Initial Creation (Streamlit)
 
-Goal: Scaffold the trading webapp ("trading-app") with a minimal but production-lean shape: config, HTTP server, basic UI placeholder, health endpoints, and a publish path for trade events to ZeroMQ for the metrics sidecar. Keep it lean; real features come next phases.
+Goal: Scaffold the Streamlit-based publisher ("trading-app") with a minimal UI (buy/sell + qty), typed payload validation, and a ZeroMQ PUSH that connects to the sidecar’s PULL. Avoid server frameworks here; FastAPI endpoints are optional and out-of-scope for Phase 1.
 
 Tasks
 
 - Project scaffold
-  - [ ] Create `trading-app/pyproject.toml` (managed by `uv`) with deps: `fastapi`, `uvicorn[standard]`, `pydantic`, `jinja2`, `python-multipart` (if forms), `prometheus-client` (basic process metrics), `pyzmq`, `orjson` (optional)
-  - [ ] Add package `trading_app` with modules: `__init__.py`, `ui.py` (FastAPI app factory), `routes.py` (HTTP endpoints), `zmq_pub.py` (publisher helper), `main.py` (CLI entry)
-  - [ ] Add `__main__.py` or `console_scripts` entrypoint `trading-app=trading_app.main:main`
+  - [ ] Create `trading-app/pyproject.toml` (managed by `uv`) with deps: `streamlit`, `pyzmq`, `pydantic` (for validation), `orjson` (optional)
+  - [ ] Add package `trading_app` with modules: `__init__.py`, `ui.py` (Streamlit app), `zmq_pub.py` (publisher helper), `models.py` (Pydantic `TradeMsg`)
   - [ ] Generate and commit `uv.lock`
 
 - Configuration & env
   - [ ] Use shared `trading-app/src/environment.py` to load from repo `.env`
-  - [ ] Define/confirm vars: `WEBAPP_HTTP_HOST`, `WEBAPP_HTTP_PORT`, `WEBAPP_ZMQ_ADDR`
-  - [ ] Provide sane defaults (e.g., `0.0.0.0:8000` and `tcp://127.0.0.1:5555`)
+  - [ ] Confirm vars: `WEBAPP_HTTP_HOST`, `WEBAPP_HTTP_PORT` (Streamlit), `WEBAPP_ZMQ_ADDR` (e.g., `tcp://127.0.0.1:5555`)
+  - [ ] Sensible defaults: host `0.0.0.0`, port `8501`
 
-- HTTP server & routes
-  - [ ] FastAPI app with middleware for request ID and logging
-  - [ ] Endpoints: `GET /healthz`, `GET /readyz`, `GET /` (placeholder page), `POST /trade` (accept trade payload, basic validation)
-  - [ ] Add CORS config (dev-friendly, restricted by env)
+- Streamlit UI
+  - [ ] Build a single-page app with: qty input, Buy and Sell buttons, and a small event log area
+  - [ ] On click, construct `TradeMsg {type:"trade", side, qty, ts}` and send via ZMQ PUSH
+  - [ ] Show success/error feedback inline (and log to stdout)
 
-- UI placeholder
-  - [ ] Jinja2 template at `templates/index.html` with a minimal page (“Trading Telemetry MVP”)
-  - [ ] Simple HTML form or curl examples to send a demo trade to `POST /trade`
-
-- ZMQ integration (publish-only stub)
-  - [ ] Initialize ZeroMQ publisher on `WEBAPP_ZMQ_ADDR` (lazy connect, retry on failure)
-  - [ ] On `POST /trade`, publish a normalized event for the sidecar to consume
-  - [ ] Include basic schema: `symbol`, `price`, `qty`, `side`, `ts`
-
-- Metrics & logging
-  - [ ] Expose basic process metrics via `prometheus_client` at `/metrics` (optional in Phase 1; sidecar owns trade metrics)
-  - [ ] Structured logging to stdout with context (request id, route, status)
+- ZMQ integration
+  - [ ] Initialize PUSH socket to `WEBAPP_ZMQ_ADDR` (connect)
+  - [ ] Reuse one socket per session; add simple retry/backoff on first connect
 
 - Local run integration
-  - [ ] Update `Makefile` `apps-up` to run the webapp via `uv run` (with reload in dev)
-  - [ ] Add `apps-down` to stop dev processes (if using a supervisor) or document Ctrl+C
-  - [ ] Verify `make apps-up` + `make open` workflow
+  - [ ] Update `Makefile` `apps-up` to run: `uv run streamlit run trading_app/ui.py --server.address $WEBAPP_HTTP_HOST --server.port $WEBAPP_HTTP_PORT`
+  - [ ] Optionally add `apps-webapp` target for starting only the publisher
+  - [ ] Verify `make apps-up` + `make open` opens the Streamlit UI
 
 - Docs updates
-  - [ ] README: add “Webapp” section with run instructions and example curl
-  - [ ] `docs/infra.md`: note that trade metrics appear once sidecar is added (Phase 2)
-  - [ ] `docs/uv-guide.md`: add typical dev loop (`uv run`, reload)
+  - [ ] README: confirm Streamlit-first approach; add example “click → metrics” flow description
+  - [ ] `docs/infra.md`: reiterate that metrics appear when the sidecar (Phase 2) is running
+  - [ ] `docs/uv-guide.md`: add Streamlit dev loop tips
 
 Definition of Done (Phase 1)
-- [ ] `make apps-up` starts the webapp on `WEBAPP_HTTP_HOST:WEBAPP_HTTP_PORT`
-- [ ] `GET /healthz` returns 200; `GET /` renders placeholder page
-- [ ] `POST /trade` accepts a valid payload and publishes to ZMQ without errors
-- [ ] Optional: `/metrics` exposes basic process metrics
+- [ ] `make apps-up` starts Streamlit on `WEBAPP_HTTP_HOST:WEBAPP_HTTP_PORT`
+- [ ] Clicking Buy/Sell logs an event and sends a ZMQ message without errors
+- [ ] With sidecar running, Grafana panels update within ~1s of a click
 
 ---
 
@@ -89,4 +78,3 @@ Definition of Done (Phase 1)
 - [ ] Dockerize apps; add app services to Compose network
 - [ ] CI checks (lint, type-check, tests) and release tagging
 - [ ] Production configs and secrets handling
-
