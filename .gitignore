@@ -1,0 +1,55 @@
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Python bytecode / build
+__pycache__/
+*.py[cod]
+*.pyd
+*.so
+build/
+dist/
+*.egg-info/
+*.egg
+pip-wheel-metadata/
+
+# Virtual environments (managed by uv/venv)
+.venv/
+venv/
+env/
+
+# Testing / tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.coverage*
+coverage.xml
+htmlcov/
+
+# Env files (commit templates only, e.g., .env.example)
+.env
+.env.*
+!.env.example
+!.env.sample
+.envrc
+
+# Node (if introduced later)
+node_modules/
+
+# Jupyter / notebooks
+.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# Docker/infra runtime data (keep provisioned configs under infra/ tracked)
+infra/data/
+infra/tmp/
+
+# Grafana local state (provisioned dashboards/datasources are versioned)
+infra/grafana/*-db/
+
+# NOTE: Do NOT ignore uv.lock for applications; commit it for reproducible builds.
