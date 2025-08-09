@@ -13,6 +13,7 @@ A living checklist to track phased delivery. Use small, verifiable tasks with cl
 - [x] `uv` usage documented and aligned
 
 Definition of Done (Phase 0)
+
 - [x] `make infra-up` brings up Prometheus + Grafana with a default dashboard
 - [x] `make open` opens Grafana and the webapp placeholder
 
@@ -25,7 +26,7 @@ Goal: Scaffold the Streamlit-based publisher ("trading-app") with a minimal UI (
 Tasks
 
 - Project scaffold
-  - [ ] Create `trading-app/pyproject.toml` (managed by `uv`) with deps: `streamlit`, `pyzmq`, `pydantic` (for validation), `orjson` (optional)
+  - [x] Create `trading-app/pyproject.toml` (managed by `uv`) with deps: `streamlit`, `pyzmq`, `pydantic` (for validation), `orjson` (optional)
   - [ ] Add package `trading_app` with modules: `__init__.py`, `ui.py` (Streamlit app), `zmq_pub.py` (publisher helper), `models.py` (Pydantic `TradeMsg`)
   - [ ] Generate and commit `uv.lock`
 
@@ -54,6 +55,7 @@ Tasks
   - [ ] `docs/uv-guide.md`: add Streamlit dev loop tips
 
 Definition of Done (Phase 1)
+
 - [ ] `make apps-up` starts Streamlit on `WEBAPP_HTTP_HOST:WEBAPP_HTTP_PORT`
 - [ ] Clicking Buy/Sell logs an event and sends a ZMQ message without errors
 - [ ] With sidecar running, Grafana panels update within ~1s of a click
