@@ -12,3 +12,8 @@ scrape_configs:
     static_configs:
       # Try service name (when side-car runs in the same Docker network)
       - targets: ["metrics-sidecar:8001", "host.docker.internal:8001"]
+
+  - job_name: metrics-sidecar-local
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["localhost:8001"]
