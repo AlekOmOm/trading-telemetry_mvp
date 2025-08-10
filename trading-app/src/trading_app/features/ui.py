@@ -28,11 +28,9 @@ class UIClass:
 
     async def run(self):
         """Launch Streamlit in isolated subprocess"""
-        # Point to isolated entry script
-        
         
         cmd = [
-            "streamlit", "run", str(self.env.UI_PATH),
+            "streamlit", "run", str(self.env.UI_PATH), # streamlit_main.py path
             "--server.address", self.env.WEBAPP_HTTP_HOST,
             "--server.port", str(self.env.WEBAPP_HTTP_PORT),
         ]

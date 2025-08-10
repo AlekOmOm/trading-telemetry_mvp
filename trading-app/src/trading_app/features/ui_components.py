@@ -123,7 +123,6 @@ class StreamlitUI:
             prefix = "✅" if ok else "⚠️"
             st.write(f"{prefix} [{e['sent']}] → {json.dumps(e['payload'])}")
 
-
     def main(self):
         """Main function"""
         self._ui_header()
