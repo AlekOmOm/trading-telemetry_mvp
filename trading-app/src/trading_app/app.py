@@ -38,17 +38,16 @@ class TradingApp:
     def __init__(self, 
                 env_config: TradingAppEnvironment, 
                 logger: logging.Logger, 
+                task_manager: TaskManager,
                 ui: UIClass,
                 client: TradingClient):
-        """Initialize the trading app"""
         # params
         self.env_config = env_config or get_trading_app_environment()
         self.logger = logger or logging.getLogger(__name__)
-        self.client = client or TradingClient(env_config)
-        self.ui = ui or UIClass(env_config)
+        self.tm = task_manager
+        self.client = client
+        self.ui = ui
         # internal
-        self.tm = TaskManager()
-        self.ui_process: Optional[subprocess.Popen] = None
         self._ctx = zmq.Context.instance() # for zmq sockets
 
     async def run_main_loop(self):
@@ -89,31 +88,11 @@ class TradingApp:
             internal_sock.close()
 
     async def run_streamlit_ui(self):
-        """Run streamlit UI as async task"""
-        env = self.env_config
-        cmd = [
-            "streamlit", "run", str(env.UI_PATH),
-            "--server.address", env.WEBAPP_HTTP_HOST,
-            "--server.port", str(env.WEBAPP_HTTP_PORT),
-        ]
-
-        self.logger.info(f"Starting Streamlit: {' '.join(cmd)}")
-
+        """Run streamlit UI as async task - delegate to UIClass"""
         try:
-            self.ui_process = subprocess.Popen(cmd)
-            
-            # Monitor process in async loop
-            while not self.tm.stop_signal.is_set():
-                if self.ui_process.poll() is not None:
-                    self.logger.error("Streamlit process died unexpectedly")
-                    self.tm.stop_signal.set()
-                    return
-                await asyncio.sleep(1)
-                
+            await self.ui.run()
         except asyncio.CancelledError:
             self.logger.info("Streamlit task cancelled")
-            if self.ui_process:
-                self.ui_process.terminate()
         except Exception as e:
             self.logger.error(f"Streamlit error: {e}")
             self.tm.stop_signal.set()
@@ -122,11 +101,6 @@ class TradingApp:
     async def exit_handler(self, exc_type, exc_val, exc_tb):
         """Handle graceful shutdown"""
         self.logger.info("Exit handler called")
-        
-        # Cleanup UI process
-        if self.ui_process:
-            self.ui_process.terminate()
-            self.logger.info("Terminated Streamlit UI process")
         
         # Cancel all tasks
         self.tm.cancel_all_tasks()

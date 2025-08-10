@@ -8,6 +8,7 @@ from .features.ui import UIClass
 from .features.client import TradingClient
 from .utils.exit_handler import GracefulExit
 from .utils.logging import setup_logging
+from .utils.task_manager import TaskManager
 
 async def main():
     """Async main with task coordination"""
@@ -17,12 +18,14 @@ async def main():
     
     logger.info(f"Starting trading app in {env_config.MODE} mode")
 
+    task_manager = TaskManager()
+
     # Initialize business logic
-    ui = UIClass(env_config)
+    ui = UIClass(env_config, task_manager)
     client = TradingClient(env_config.WEBAPP_ZMQ_ADDR)
     
     # Initialize app
-    app = TradingApp(env_config, logger, ui, client)
+    app = TradingApp(env_config, logger, task_manager, ui, client)
 
     # Define shutdown coordination
     async def shutdown_trigger():

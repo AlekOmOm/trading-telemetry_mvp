@@ -18,7 +18,7 @@ class TradingAppEnvironment(BaseSettings):
     # paths
     REPO_ROOT: Path = Path(__file__).parents[3]
     APP_DIR: Path = Path(__file__).resolve().parent # app = trading_app/
-    UI_PATH: Path = next(APP_DIR.glob("**/ui.py"))
+    UI_PATH: Path = APP_DIR / "features" / "streamlit_main.py"  # Point to isolated script
 
     # system env
     MODE: str = "dev"
