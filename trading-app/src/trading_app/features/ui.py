@@ -64,7 +64,7 @@ class UIClass:
 
     def _ui_controls(self) -> None:
         """UI controls"""
-        # using `streamlit-shadcn-ui` if available; no fallback -> error if not available
+        # using `streamlit-shadcn-ui` - no fallback -> error if not available
         try:
             import streamlit_shadcn_ui as ui  # type: ignore
         except Exception:  # pragma: no cover - best-effort styling only
@@ -104,8 +104,7 @@ class UIClass:
             st.error(f"Invalid trade payload: {e}")
             return
 
-        socket = self._get_app_socket()
-        socket.send_json(msg.model_dump())
+        self.app_socket.send_json(msg.model_dump())
 
         entry = {
             "sent": time.strftime("%H:%M:%S"),

@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from typing import Optional
 
 import zmq
+import bisect
+from collections import deque
 
 
 @dataclass
@@ -32,8 +34,7 @@ class TradingClient:
 
         # Benchmarking state
         self._benchmarking = enable_benchmarking
-        self._publish_times = []
-        self._max_samples = 10000
+        self._latency_tracker = LatencyTracker()
 
     @property
     def addr(self) -> str:
@@ -70,9 +71,7 @@ class TradingClient:
             elapsed_ms = elapsed_ns / 1_000_000.0
 
             # Store sample (ring buffer)
-            if len(self._publish_times) >= self._max_samples:
-                self._publish_times.pop(0)
-            self._publish_times.append(elapsed_ns)
+            self._latency_tracker.add_sample(elapsed_ns)
 
             return PublishResult(ok=True, elapsed_ms=elapsed_ms)
 
@@ -89,19 +88,35 @@ class TradingClient:
 
     def get_latency_stats(self) -> dict:
         """Get publishing latency statistics in microseconds."""
-        if not self._publish_times:
-            return {}
+        return self._latency_tracker.get_stats()
 
-        times_us = [t / 1000.0 for t in self._publish_times]  # Convert to microseconds
-        times_us.sort()
 
-        n = len(times_us)
+class LatencyTracker:
+    """Efficient latency statistics tracking."""
+    
+    def __init__(self, max_samples: int = 10000):
+        self._times = deque(maxlen=max_samples)
+        self._sorted_cache = None
+        self._cache_valid = False
+    
+    def add_sample(self, time_ns: int) -> None:
+        self._times.append(time_ns)
+        self._cache_valid = False
+    
+    def get_stats(self) -> dict:
+        if not self._cache_valid:
+            self._update_cache()
+        # Return cached percentiles
         return {
-            "count": n,
-            "min_us": times_us[0],
-            "max_us": times_us[-1],
-            "mean_us": sum(times_us) / n,
-            "p50_us": times_us[n // 2],
-            "p95_us": times_us[int(n * 0.95)],
-            "p99_us": times_us[int(n * 0.99)],
+            "count": len(self._times),
+            "min_us": self._sorted_cache[0] / 1000.0,
+            "max_us": self._sorted_cache[-1] / 1000.0,
+            "mean_us": sum(self._sorted_cache) / len(self._sorted_cache) / 1000.0,
+            "p50_us": self._sorted_cache[len(self._sorted_cache) // 2] / 1000.0,
+            "p95_us": self._sorted_cache[int(len(self._sorted_cache) * 0.95)] / 1000.0,
+            "p99_us": self._sorted_cache[int(len(self._sorted_cache) * 0.99)] / 1000.0,
         }
+    
+    def _update_cache(self):
+        self._sorted_cache = sorted(self._times)
+        self._cache_valid = True
