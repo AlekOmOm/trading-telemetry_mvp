@@ -20,5 +20,4 @@ How to run
 
 Notes
 
-- Uses `streamlit-shadcn-ui` if installed; falls back to native Streamlit widgets.
-- If no sidecar is running yet, sends may warn due to no subscriber; this is expected for Phase 1.
+- If no sidecar is running yet, sends may warn due to no subscriber.
