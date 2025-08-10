@@ -30,18 +30,6 @@ logs:
 # ------------------------------------------------------------
 # Apps
 # ------------------------------------------------------------
-apps-stop:
-	@echo "🛑 Stopping applications..."
-	@if [ -f .metrics-sidecar.pid ]; then \
-		PID=$$(cat .metrics-sidecar.pid) && kill $$PID 2>/dev/null && echo "   → Stopped metrics-sidecar (PID: $$PID)" || echo "   → metrics-sidecar already stopped"; \
-		rm -f .metrics-sidecar.pid; \
-	fi
-	@if [ -f .trading-app.pid ]; then \
-		PID=$$(cat .trading-app.pid) && kill $$PID 2>/dev/null && echo "   → Stopped trading-app (PID: $$PID)" || echo "   → trading-app already stopped"; \
-		rm -f .trading-app.pid; \
-	fi
-	@echo "✅ Apps stopped."
-
 sidecar-up:
 	@echo "Starting metrics-sidecar"
 	@cd metrics-sidecar && uv run run-metrics-sidecar
@@ -57,11 +45,14 @@ apps-up:
 	@echo "terminals started"
 	@make open
 
+# ------------------------------------------------------------
+# Open all services
 
 open:
 	@# Open all four services: Grafana, Trading App, Prometheus, and Metrics Sidecar
 	@echo "Opening all services..."
 	@open "http://localhost:3000/d/telemetry-mvp/trading-telemetry-mvp?refresh=5s"  # Grafana Dashboard
 	@open "http://localhost:9090"                                                   # Prometheus
-	@open "http://localhost:$(SIDECAR_PORT)/metrics"                     # Metrics Sidecar Metrics
-	@open "http://localhost:$(WEBAPP_PORT)"                             # Trading App (Streamlit)
+	@open "http://localhost:$(SIDECAR_PORT)/metrics"                     			# Metrics Sidecar Metrics
+	@open "http://localhost:$(WEBAPP_PORT)"                             			# Trading App (Streamlit)
+
