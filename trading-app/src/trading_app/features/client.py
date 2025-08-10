@@ -46,6 +46,8 @@ class TradingClient:
         else:
             return self._publish_fast(payload)
 
+# ------ benchmarking stuff below ------
+
     def _publish_fast(self, payload: dict) -> PublishResult:
         """Fast path - minimal overhead."""
         try:
