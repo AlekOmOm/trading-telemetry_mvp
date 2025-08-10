@@ -10,14 +10,20 @@ class SidecarEnvironment(BaseSettings):
     SIDECAR_ZMQ_BIND: str = "tcp://0.0.0.0:5555"
     SIDECAR_HTTP_HOST: str = "0.0.0.0"
     SIDECAR_HTTP_PORT: int = 8001
+    
+    # run environment
     DOCKER_MODE: bool = False
+    
+    # paths
+    REPO_ROOT: Path = Path(__file__).parents[3]
+    APP_DIR: Path = Path(__file__).resolve().parent # app = metrics_sidecar/
 
+    # system env
+    MODE: str = "dev"
+    
     model_config = {
-        # Look for .env files starting from repo root
         "env_file": [
-            Path(__file__).parents[3] / ".env",  # repo root
-            Path(__file__).parents[2] / ".env",  # project root
-            ".env"  # current directory
+            REPO_ROOT / ".env",
         ],
         "env_file_encoding": "utf-8",
         "case_sensitive": True,
@@ -28,17 +34,4 @@ class SidecarEnvironment(BaseSettings):
 def get_sidecar_environment() -> SidecarEnvironment:
     """Get environment configuration with automatic .env loading and validation."""
     return SidecarEnvironment()
-
-
-# Convenience accessors retained for compatibility
-def sidecar_zmq_bind() -> str:
-    return get_sidecar_environment().SIDECAR_ZMQ_BIND
-
-
-def sidecar_http_host() -> str:
-    return get_sidecar_environment().SIDECAR_HTTP_HOST
-
-
-def sidecar_http_port() -> int:
-    return get_sidecar_environment().SIDECAR_HTTP_PORT
 

@@ -1,6 +1,6 @@
 __all__ = [
     "models",
-    "zmq_pub",
+    "client",
     "ui"
 ]
 

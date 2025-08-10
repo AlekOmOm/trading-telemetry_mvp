@@ -21,6 +21,8 @@ dev = [
     "ruff>=0.12.8",
 ]
 
+[tool.uv]
+package = true
+
 [project.scripts]
-metrics-sidecar = "metrics_sidecar.main:main"
-uv run uvicorn metrics_sidecar.web:app --host "$$SIDECAR_HOST" --port "$$SIDECAR_PORT" --reload
+run-metrics-sidecar = "metrics_sidecar.entrypoint:run"

@@ -8,6 +8,7 @@ class TradingAppEnvironment(BaseSettings):
     
     # webapp
     WEBAPP_ZMQ_ADDR: str = "tcp://localhost:5555"
+    APP_ZMQ_ADDR: str = "tcp://127.0.0.1:5556"
     WEBAPP_HTTP_HOST: str = "0.0.0.0"
     WEBAPP_HTTP_PORT: int = 8501
 

@@ -15,7 +15,7 @@ class PublishResult:
     elapsed_ms: Optional[float] = None
 
 
-class TradePublisher:
+class TradingClient:
     """Thin ZMQ PUSH publisher with a single reusable socket."""
 
     def __init__(self, connect_addr: str) -> None:
@@ -39,4 +39,3 @@ class TradePublisher:
             return PublishResult(ok=True, elapsed_ms=(time.perf_counter() - t0) * 1000.0)
         except Exception as e:  # zmq.Again on timeout, etc.
             return PublishResult(ok=False, error=str(e))
-
