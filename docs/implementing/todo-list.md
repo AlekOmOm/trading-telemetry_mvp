@@ -19,7 +19,7 @@ Definition of Done (Phase 0)
 
 ---
 
-## Phase 1 — Webapp Initial Creation (Streamlit)
+## Phase 1 — `trading-app` Initial Creation (Streamlit)
 
 Goal: Scaffold the Streamlit-based publisher ("trading-app") with a minimal UI (buy/sell + qty), typed payload validation, and a ZeroMQ PUSH that connects to the sidecar’s PULL. Avoid server frameworks here; FastAPI endpoints are optional and out-of-scope for Phase 1.
 
@@ -27,11 +27,11 @@ Tasks
 
 - Project scaffold
   - [x] Create `trading-app/pyproject.toml` (managed by `uv`) with deps: `streamlit`, `pyzmq`, `pydantic` (for validation), `orjson` (optional)
-  - [ ] Add package `trading_app` with modules: `__init__.py`, `ui.py` (Streamlit app), `zmq_pub.py` (publisher helper), `models.py` (Pydantic `TradeMsg`)
-  - [ ] Generate and commit `uv.lock`
+  - [x] Add package `trading_app` with modules: `__init__.py`, `ui.py` (Streamlit app), `zmq_pub.py` (publisher helper), `models.py` (Pydantic `TradeMsg`)
+  - [x] Generate and commit `uv.lock`
 
 - Configuration & env
-  - [ ] Use shared `trading-app/src/environment.py` to load from repo `.env`
+  - [x] Use shared `trading-app/src/environment.py` to load from repo `.env`
   - [ ] Confirm vars: `WEBAPP_HTTP_HOST`, `WEBAPP_HTTP_PORT` (Streamlit), `WEBAPP_ZMQ_ADDR` (e.g., `tcp://127.0.0.1:5555`)
   - [ ] Sensible defaults: host `0.0.0.0`, port `8501`
 
@@ -62,21 +62,44 @@ Definition of Done (Phase 1)
 
 ---
 
-## Phase 2 — Metrics Sidecar
+## Phase 2 — `metrics-sidecar`
 
 - [ ] Scaffold sidecar project (`metrics-sidecar`) with `uv`
 - [ ] Connect to `WEBAPP_ZMQ_ADDR` as subscriber; parse events
 - [ ] Expose Prometheus metrics on `SIDECAR_HTTP_HOST:SIDECAR_HTTP_PORT` (counters, gauges)
 - [ ] Align with Grafana dashboard queries; validate panels update
+- [ ] add openapi support [openapi fastapi](../api/openapi.fastapi.md)
 
-## Phase 3 — Webapp UI & Features
+## Phase 3 - simplification & polish -> clean code
+
+aim: keep modularity, but simplify for minimalism, readability and cleanliness
+- remember: clean code is not necessarily less, but always more focused and intentional
+
+- [ ] go through 
+  - [ ] trading-app
+    - [ ] trading-app/src/trading_app/lib/ui.py
+    - [ ] trading-app/src/trading_app/lib/zmq_pub.py
+    - [ ] trading-app/src/trading_app/lib/models.py
+    - [ ] trading-app/src/trading_app/environment.py
+    - [ ] trading-app/src/trading_app/entrypoint.py
+    - [ ] trading-app/src/trading_app/app.py
+    - [ ] trading-app/pyproject.toml
+  - [ ] metrics-sidecar
+    - [ ] metrics-sidecar/src/metrics_sidecar/lib/web.py
+    - [ ] metrics-sidecar/src/metrics_sidecar/lib/zmq_sub.py
+    - [ ] metrics-sidecar/src/metrics_sidecar/lib/metrics.py
+    - [ ] metrics-sidecar/src/metrics_sidecar/lib/models.py
+    - [ ] metrics-sidecar/src/metrics_sidecar/environment.py
+    - [ ] metrics-sidecar/src/metrics_sidecar/entrypoint.py
+    - [ ] metrics-sidecar/src/metrics_sidecar/app.py
+    - [ ] metrics-sidecar/pyproject.toml
+
+## Phase 4 — `trading-app` UI & Features
 
 - [ ] Add live trade feed UI (SSE or WebSocket)
 - [ ] Input validation, schemas, and client-side UX polish
 - [ ] Basic auth or API token (if needed)
 
-## Phase 4 — Packaging & Deployment (Optional)
+## Phase 5 — Packaging & Deployment
 
 - [ ] Dockerize apps; add app services to Compose network
-- [ ] CI checks (lint, type-check, tests) and release tagging
-- [ ] Production configs and secrets handling

@@ -1,5 +1,26 @@
 [project]
 name = "metrics-sidecar"
 version = "0.1.0"
-requires-python = ">=3.10"
-dependencies = []
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.116.1",
+    "prometheus-client>=0.22.1",
+    "pydantic>=2.11.7",
+    "pydantic-settings>=2.6.1",
+    "pyzmq>=27.0.1",
+    "uvicorn>=0.35.0",
+]
+
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "pre-commit>=4.2.0",
+    "pytest>=8.4.1",
+    "ruff>=0.12.8",
+]
+
+[project.scripts]
+metrics-sidecar = "metrics_sidecar.main:main"
+uv run uvicorn metrics_sidecar.web:app --host "$$SIDECAR_HOST" --port "$$SIDECAR_PORT" --reload
