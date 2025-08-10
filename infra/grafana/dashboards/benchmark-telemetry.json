@@ -1,0 +1,279 @@
+{
+  "id": null,
+  "uid": "benchmark-telemetry",
+  "title": "Benchmark Telemetry",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": { 
+    "list": [
+      {
+        "name": "test_type",
+        "type": "query",
+        "query": "label_values(benchmark_tests_total, test_type)",
+        "refresh": 1,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": { "value": "$__all", "text": "All" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Publishing Latency (P95)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": { 
+          "unit": "µs",
+          "custom": { "drawStyle": "line", "lineInterpolation": "linear" }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "benchmark_latency_p95_microseconds{test_type=~\"$test_type\"}",
+          "legendFormat": "{{test_type}}/{{test_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Publishing Latency (P99)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": {
+        "defaults": { 
+          "unit": "µs",
+          "custom": { "drawStyle": "line", "lineInterpolation": "linear" }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "benchmark_latency_p99_microseconds{test_type=~\"$test_type\"}",
+          "legendFormat": "{{test_type}}/{{test_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Throughput (Trades/sec)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": {
+        "defaults": { 
+          "unit": "ops",
+          "custom": { "drawStyle": "line", "lineInterpolation": "linear" }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "benchmark_throughput_trades_per_second{test_type=~\"$test_type\"}",
+          "legendFormat": "{{test_type}}/{{test_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Test Duration",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "fieldConfig": {
+        "defaults": { 
+          "unit": "s",
+          "custom": { "drawStyle": "line", "lineInterpolation": "linear" }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "benchmark_duration_seconds{test_type=~\"$test_type\"}",
+          "legendFormat": "{{test_type}}/{{test_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Latest P95 Latency",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 16 },
+      "fieldConfig": {
+        "defaults": { 
+          "unit": "µs",
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 500 },
+              { "color": "red", "value": 1000 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "benchmark_latency_p95_microseconds",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Latest Throughput",
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 16 },
+      "fieldConfig": {
+        "defaults": { 
+          "unit": "ops",
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 100 },
+              { "color": "green", "value": 500 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "benchmark_throughput_trades_per_second",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Queue Full Events",
+      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 16 },
+      "fieldConfig": {
+        "defaults": { 
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 10 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "increase(benchmark_queue_full_events_total[5m])",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Total Tests Run",
+      "gridPos": { "h": 6, "w": 6, "x": 18, "y": 16 },
+      "fieldConfig": {
+        "defaults": { 
+          "unit": "short",
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(benchmark_tests_total)",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Latency Distribution",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 22 },
+      "fieldConfig": {
+        "defaults": { 
+          "unit": "µs",
+          "custom": { "drawStyle": "line", "lineInterpolation": "linear" }
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "benchmark_latency_min_microseconds{test_type=~\"$test_type\"}",
+          "legendFormat": "Min - {{test_type}}/{{test_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "refId": "B",
+          "expr": "benchmark_latency_p50_microseconds{test_type=~\"$test_type\"}",
+          "legendFormat": "P50 - {{test_type}}/{{test_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "refId": "C",
+          "expr": "benchmark_latency_p95_microseconds{test_type=~\"$test_type\"}",
+          "legendFormat": "P95 - {{test_type}}/{{test_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "refId": "D",
+          "expr": "benchmark_latency_p99_microseconds{test_type=~\"$test_type\"}",
+          "legendFormat": "P99 - {{test_type}}/{{test_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "refId": "E",
+          "expr": "benchmark_latency_max_microseconds{test_type=~\"$test_type\"}",
+          "legendFormat": "Max - {{test_type}}/{{test_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Recent Benchmark Results",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 30 },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "auto" } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "P95 Latency" }, "properties": [{ "id": "unit", "value": "µs" }] },
+          { "matcher": { "id": "byName", "options": "Throughput" }, "properties": [{ "id": "unit", "value": "ops" }] }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "benchmark_latency_p95_microseconds",
+          "format": "table",
+          "instant": true,
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "__name__": true, "job": true, "instance": true },
+            "renameByName": {
+              "test_type": "Test Type",
+              "test_name": "Test Name",
+              "Value": "P95 Latency"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

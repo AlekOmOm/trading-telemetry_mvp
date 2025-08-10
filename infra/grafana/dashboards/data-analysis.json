@@ -1,0 +1,56 @@
+{
+  "id": null,
+  "uid": "data-analysis",
+  "title": "Trading Data Analysis (NumPy/Pandas)",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5s",
+  "time": { "from": "now-15m", "to": "now" },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Mean Quantity (NumPy)",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "decimals": 2 }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "analysis_mean_qty",
+          "legendFormat": "Mean Qty",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "type": "stat", 
+      "title": "Quantity Std Dev (NumPy)",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 0 },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "decimals": 2 }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "analysis_qty_std",
+          "legendFormat": "Std Dev",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Buy Volume Analysis (Pandas)",
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 6 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "analysis_buy_volume",
+          "legendFormat": "Buy Volume",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    }
+  ]
+}

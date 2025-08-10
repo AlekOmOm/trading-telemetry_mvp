@@ -11,6 +11,22 @@ A minimal, low-latency telemetry loop for a toy trading app. The Streamlit UI (p
 - `docker-compose.infra.yml`: Prometheus + Grafana stack for local observability.
 - `docs/`: Product/design docs (see `docs/MVP.PRD.md`).
 
+### benchmarking
+[readme - benchmarking](./trading-app/src/trading_app/benchmark/README.md)
+
+purpose:
+- measure the latency introduced by publishing with PyZMQ 
+- send benchmarking to `telemetry stack` (metrics-sidecar, prometheus, grafana)
+
+files:
+- `trading-app/src/trading_app/benchmark/`: Latency benchmarking tools.
+- `trading-app/src/trading_app/features/client.py`: Thin ZMQ publisher with latency benchmarking.
+
+run:
+```
+make benchmark
+```
+
 ## Run the MVP (local)
 
 1) Env setup

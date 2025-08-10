@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.116.1",
+    "numpy>=2.3.2",
+    "pandas>=2.3.1",
     "prometheus-client>=0.22.1",
     "pydantic>=2.11.7",
     "pydantic-settings>=2.6.1",

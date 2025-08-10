@@ -1,6 +1,8 @@
 SHELL := /bin/bash
 
-.PHONY: env-setup infra-up sidecar-up app-up apps-up apps-stop sidecar-dev app-dev apps-dev open
+.PHONY: env-setup infra-up sidecar-up app-up apps-up apps-stop sidecar-dev app-dev apps-dev open \
+        benchmark-burst benchmark-burst-large benchmark-sustained benchmark-sustained-high \
+        benchmark-comprehensive benchmark-profile benchmark-dashboard benchmark-monitor benchmark-test benchmark-help
 
 -include .env
 
@@ -40,8 +42,9 @@ trading-app-up:
 
 apps-up:
 	@echo "Starting both applications in separate terminals..."
-	@osascript -e 'tell application "Terminal" to do script "cd \"$(PWD)\" && make sidecar-dev"'
-	@osascript -e 'tell application "Terminal" to do script "cd \"$(PWD)\" && make trading-app-dev"'
+	@osascript -e 'tell application "Terminal" to do script "cd \"$(PWD)\" && make sidecar-up"'
+	@sleep 1
+	@osascript -e 'tell application "Terminal" to do script "cd \"$(PWD)\" && make trading-app-up"'
 	@echo "terminals started"
 	@make open
 
@@ -55,4 +58,56 @@ open:
 	@open "http://localhost:9090"                                                   # Prometheus
 	@open "http://localhost:$(SIDECAR_PORT)/metrics"                     			# Metrics Sidecar Metrics
 	@open "http://localhost:$(WEBAPP_PORT)"                             			# Trading App (Streamlit)
+
+# ------------------------------------------------------------
+# Benchmarking
+# ------------------------------------------------------------
+
+benchmark-burst:
+	@echo "Running burst benchmark (1000 trades)..."
+	@cd trading-app && uv run python -m trading_app.benchmark.runners burst 1000
+
+benchmark-burst-large:
+	@echo "Running large burst benchmark (5000 trades)..."
+	@cd trading-app && uv run python -m trading_app.benchmark.runners burst 5000
+
+benchmark-sustained:
+	@echo "Running sustained benchmark (30s at 200 tps)..."
+	@cd trading-app && uv run python -m trading_app.benchmark.runners sustained 30 200
+
+benchmark-sustained-high:
+	@echo "Running high-rate sustained benchmark (30s at 500 tps)..."
+	@cd trading-app && uv run python -m trading_app.benchmark.runners sustained 30 500
+
+benchmark-comprehensive:
+	@echo "Running comprehensive benchmark suite..."
+	@cd trading-app && uv run python -m trading_app.benchmark.runners comprehensive
+
+benchmark-profile:
+	@echo "Running latency profile (up to 1000 tps)..."
+	@cd trading-app && uv run python -m trading_app.benchmark.runners profile 1000 100
+
+benchmark-dashboard:
+	@echo "Opening benchmark dashboard..."
+	@open "http://localhost:3000/d/benchmark-telemetry/benchmark-telemetry?refresh=5s"
+
+benchmark-monitor:
+	@echo "Starting benchmark system self-monitoring..."
+	@cd trading-app && uv run python -m trading_app.benchmark.self_monitor
+
+benchmark-test:
+	@echo "Testing benchmark metrics publishing..."
+	@cd trading-app && uv run python -m trading_app.benchmark.test_metrics
+
+benchmark-help:
+	@echo "Available benchmark commands:"
+	@echo "  benchmark-burst         - Quick burst test (1000 trades)"
+	@echo "  benchmark-burst-large   - Large burst test (5000 trades)"
+	@echo "  benchmark-sustained     - Sustained rate test (30s at 200 tps)"
+	@echo "  benchmark-sustained-high- High rate test (30s at 500 tps)"
+	@echo "  benchmark-comprehensive - Full benchmark suite"
+	@echo "  benchmark-profile       - Latency profiling under load"
+	@echo "  benchmark-dashboard     - Open benchmark dashboard"
+	@echo "  benchmark-monitor       - Start benchmark system self-monitoring"
+	@echo "  benchmark-test          - Test benchmark metrics publishing"
 

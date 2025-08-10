@@ -9,15 +9,15 @@ from typing import AsyncGenerator, Callable
 import zmq
 import zmq.asyncio
 
-from .models import TradeMsg
+from .models import TradeMsg, BenchmarkMsg, BenchmarkStatusMsg, TelemetryMsg
 
 logger = logging.getLogger(__name__)
 
 
 class TradeSubscriber:
-    """ZMQ PULL subscriber for trade messages."""
+    """ZMQ PULL subscriber for telemetry messages (trades and benchmarks)."""
 
-    def __init__(self, bind_addr: str, handler: Callable[[TradeMsg], None]) -> None:
+    def __init__(self, bind_addr: str, handler: Callable[[TelemetryMsg], None]) -> None:
         self.bind_addr = bind_addr
         self.handler = handler
         self._ctx: zmq.asyncio.Context | None = None
@@ -72,23 +72,34 @@ class TradeSubscriber:
                 await asyncio.sleep(0.1)
 
     async def _process_message(self, raw_msg: str) -> None:
-        """Process a single trade message."""
+        """Process a single telemetry message (trade or benchmark)."""
         try:
             payload = json.loads(raw_msg)
-            trade_msg = TradeMsg(**payload)
-            
-            logger.debug(f"Received trade: {trade_msg}")
-            
+            msg_type = payload.get("type", "unknown")
+
+            # Parse message based on type
+            if msg_type == "trade":
+                msg = TradeMsg(**payload)
+            elif msg_type == "benchmark":
+                msg = BenchmarkMsg(**payload)
+            elif msg_type == "benchmark_status":
+                msg = BenchmarkStatusMsg(**payload)
+            else:
+                logger.warning(f"Unknown message type: {msg_type}")
+                return
+
+            logger.info(f"Received {msg_type} message: {msg}")
+
             # Call the handler
-            self.handler(trade_msg)
-            
+            self.handler(msg)
+
         except Exception as e:
             logger.error(f"Failed to process message '{raw_msg}': {e}")
 
 
 @asynccontextmanager
 async def trade_subscriber_context(
-    bind_addr: str, handler: Callable[[TradeMsg], None]
+    bind_addr: str, handler: Callable[[TelemetryMsg], None]
 ) -> AsyncGenerator[TradeSubscriber, None]:
     """Context manager for trade subscriber."""
     subscriber = TradeSubscriber(bind_addr, handler)

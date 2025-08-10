@@ -10,7 +10,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest, CollectorReg
 
 from .environment import SidecarEnvironment, get_sidecar_environment
 from .lib.metrics import TradingMetrics
-from .lib.models import TradeMsg
+from .lib.models import TradeMsg, BenchmarkMsg, BenchmarkStatusMsg, TelemetryMsg
 from .lib.zmq_sub import trade_subscriber_context, TradeSubscriber
 
 
@@ -35,17 +35,36 @@ class MetricsSidecar:
         self.subscriber: Optional[TradeSubscriber] = None
         self.app = self.create_app()
 
-    def handle_trade_message(self, trade_msg: TradeMsg) -> None:
-        """Handle incoming trade messages by updating metrics."""
+    def handle_telemetry_message(self, msg: TelemetryMsg) -> None:
+        """Handle incoming telemetry messages by updating metrics."""
         try:
-            self.metrics.record_trade(
-                side=trade_msg.side,
-                qty=trade_msg.qty,
-                ts=trade_msg.ts
-            )
-            self.logger.info(f"Recorded trade: {trade_msg.side} qty={trade_msg.qty}")
+            if isinstance(msg, TradeMsg):
+                self.metrics.record_trade(
+                    side=msg.side,
+                    qty=msg.qty,
+                    ts=msg.ts
+                )
+                self.logger.info(f"Recorded trade: {msg.side} qty={msg.qty}")
+
+            elif isinstance(msg, BenchmarkMsg):
+                self.metrics.record_benchmark(
+                    test_type=msg.test_type,
+                    test_name=msg.test_name,
+                    timestamp=msg.timestamp,
+                    total_trades=msg.total_trades,
+                    duration_seconds=msg.duration_seconds,
+                    trades_per_second=msg.trades_per_second,
+                    queue_full_count=msg.queue_full_count,
+                    error_count=msg.error_count,
+                    latency_stats=msg.latency_stats
+                )
+                self.logger.info(f"Recorded benchmark: {msg.test_type}/{msg.test_name} - {msg.total_trades} trades, {msg.trades_per_second:.1f} tps")
+
+            elif isinstance(msg, BenchmarkStatusMsg):
+                self.logger.info(f"Benchmark status: {msg.test_name} - {msg.status}: {msg.message}")
+
         except Exception as e:
-            self.logger.error(f"Failed to record trade {trade_msg}: {e}")
+            self.logger.error(f"Failed to record message {msg}: {e}")
 
     @asynccontextmanager
     async def lifespan(self, app: FastAPI) -> AsyncGenerator[None, None]:
@@ -53,7 +72,7 @@ class MetricsSidecar:
         bind_addr = self.env_config.SIDECAR_ZMQ_BIND
         self.logger.info(f"Starting trade subscriber on {bind_addr}")
         
-        async with trade_subscriber_context(bind_addr, self.handle_trade_message) as sub:
+        async with trade_subscriber_context(bind_addr, self.handle_telemetry_message) as sub:
             self.subscriber = sub
             self.logger.info("Metrics sidecar started")
             yield
