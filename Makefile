@@ -10,6 +10,7 @@ SIDECAR_HOST := $${SIDECAR_HTTP_HOST:-0.0.0.0}
 SIDECAR_PORT := $${SIDECAR_HTTP_PORT:-8001}
 WEBAPP_HOST := $${WEBAPP_HTTP_HOST:-0.0.0.0}
 WEBAPP_PORT := $${WEBAPP_HTTP_PORT:-8501}
+METRICS_URL := http://$(SIDECAR_HOST):$(SIDECAR_PORT)/metrics
 
 # ------------------------------------------------------------
 env-setup:
@@ -24,7 +25,10 @@ env-setup:
 	fi
 
 infra-up:
-	docker compose -f docker-compose.infra.yml up -d
+	@echo " "
+	@docker compose -f docker-compose.infra.yml up -d
+	@echo " "
+	@docker compose -f docker-compose.infra.yml ps
 
 logs:
 	@docker compose -f docker-compose.infra.yml logs -f
@@ -56,7 +60,7 @@ open:
 	@echo "Opening all services..."
 	@open "http://localhost:3000/d/telemetry-mvp/trading-telemetry-mvp?refresh=5s"  # Grafana Dashboard
 	@open "http://localhost:9090"                                                   # Prometheus
-	@open "http://localhost:$(SIDECAR_PORT)/metrics"                     			# Metrics Sidecar Metrics
+	@open "$(METRICS_URL)"                     			# Metrics Sidecar Metrics
 	@open "http://localhost:$(WEBAPP_PORT)"                             			# Trading App (Streamlit)
 
 # ------------------------------------------------------------
