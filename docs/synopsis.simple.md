@@ -1,10 +1,7 @@
 # trading telemetry mvp – synopsis
 
 ## overview  
-a prototype low-latency trading telemetry system demonstrating 
-- real-time market data ingestion, analysis, and metric exposure. 
-
-architecture emphasizes minimal latency, scalability, and clarity of data flow from ingestion to analytics output.
+a prototype low-latency trading telemetry system demonstrating real-time market data ingestion, analysis, and metric exposure. architecture emphasizes minimal latency, scalability, and clarity of data flow from ingestion to analytics output.
 
 ---
 
@@ -21,17 +18,19 @@ architecture emphasizes minimal latency, scalability, and clarity of data flow f
 - analysis is triggered automatically per incoming trade and exposed as **prometheus** metrics.
 
 **exam focus**:  
-1. how numpy enables O(1)-like bulk operations without python loops.  
-2. pandas as a data wrangling and aggregation layer for streaming datasets.  
-3. integration point: metrics pipeline from raw trade → in-memory df → prometheus.
+1. streamlit process in subprocess with zmq messaging to main app (trading_app/app.py) with `ui_process` handling for graceful exitting.
+2. data analysis: numpy for bulk operations, pandas for filtering/aggregation. 
+3. architecture: zmq for decoupling, pydantic for structured messaging, task_manager.py for async task coordination.
+4. integration point: metrics pipeline from raw trade → in-memory df → prometheus metrics.
 
 ---
 
 ## 3. message transport layer  
-- **pyzmq**: high-performance zero-copy messaging, push/pull topology for service decoupling.  
-- asynchronous, non-blocking event flow.  
-- trade events serialized to json for structured processing and interoperability.  
-- real zmq trade messages used (not synthetic), ensuring realistic latency profiles.
+- **pyzmq**: high-performance zero-copy messaging, chosen push/pull message (pipeline) for service decoupling - aim was complete decoupling of ui (streamlit process) from main app (trading_app/app.py) which spawns the subprocess.
+- asynchronous, non-blocking event flow (while loop with utils: `task_manager` and `exit_handler` for handling async graceful shutdowns).  
+- trade events serialized to json for structured processing and interoperability (with pydantic models for validation)
+- real zmq trade messages used, ensuring realistic latency data.
+  - context: this is simple zmq project with async process handling, but in production environment that latency data and analysis would be more complex.
 
 ---
 
